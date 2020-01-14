@@ -21,6 +21,8 @@ public:
 
     void establish_connection();
 
+    void establish_pingage();
+
     void keep_broadcasting(bool);
 
 signals:
@@ -31,6 +33,9 @@ private slots:
     void slotError(QAbstractSocket::SocketError);
     void slotSendToServer();
     void slotConnected();
+
+    void slotReadyReceivePing();
+    void slotConnectedToPing();
 };
 
 #endif // CONNECTIONCLIENT_H

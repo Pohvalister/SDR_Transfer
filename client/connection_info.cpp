@@ -2,4 +2,4 @@
 
 std::optional<connection_info> server_info;
 
-data_request sdr_request;
+sdr_request out_request(0,0,0);

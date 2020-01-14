@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     server_info = std::nullopt;
-    sdr_request = data_request(DEFAULT_CENTER_FREQUENCY, DEFAULT_SAMPLE_RATE,DEFAULT_FREQUENCY_WIDTH);
+    out_request = sdr_request(DEFAULT_CENTER_FREQUENCY, DEFAULT_SAMPLE_RATE,DEFAULT_FREQUENCY_WIDTH);
     connection_client = new ConnectionClient();
     //connection_client ->setParent(this);
 
@@ -22,8 +22,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_NetConfigureButton_clicked()
 {
-    ClientDialog client(this);
-    //client ->setParent(this);
+    ClientDialog client(this,connection_client);
+    client.setParent(this);
     client.exec();
 
 }

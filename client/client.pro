@@ -1,7 +1,7 @@
 QT       += core gui \
             network
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 CONFIG += c++17
 
@@ -17,6 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    qcustomplot.cpp \
     clientdialog.cpp \
     connection_info.cpp \
     connectionclient.cpp \
@@ -24,10 +25,12 @@ SOURCES += \
     mainwindow.cpp
 
 HEADERS += \
+    qcustomplot.h \
     clientdialog.h \
     connection_info.h \
     connectionclient.h \
-    mainwindow.h
+    mainwindow.h \
+    ../connection_structure.h
 
 FORMS += \
     clientdialog.ui \

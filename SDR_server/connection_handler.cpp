@@ -22,7 +22,9 @@
 
 #define ELOG(a) std::cout<<"\n--\n"<<(a)<<", error:\n"<<'['<<std::string(strerror(errno))<<']'<<"\n--\n\n"
 
-connection_handler::connection_handler(){
+connection_handler::connection_handler(device_listener* l)
+    : listener(l)
+    {
 }
 
 int connection_handler::create_socket(int port) {
@@ -91,7 +93,7 @@ void connection_handler::new_client_accepting(int socket_fd, int epoll_fd) {
 }
 
 void connection_handler::get_client_request(int client_fd){
-    const int LEN_BYTES = sizeof (uint16_t);
+    const int LEN_BYTES = sizeof (int16_t);
     char len_size_buffer[LEN_BYTES];
     ssize_t data_length = read(client_fd, len_size_buffer, LEN_BYTES);
     if (data_length == -1){
@@ -102,15 +104,26 @@ void connection_handler::get_client_request(int client_fd){
         LOG("Client on socket " + std::to_string(client_fd) + " closed connection");
         return;
     }
-    ssize_t read_buffer_len = *((uint16_t*)len_size_buffer);
+    ssize_t read_buffer_len = *((int16_t*)len_size_buffer);
     LOG("Amount of bytes received: " + std::to_string(read_buffer_len));
 
     char buffer[read_buffer_len];
     data_length += read(client_fd, buffer,read_buffer_len);
 
+    sdr_request request = *((sdr_request *)(buffer));
+
+    listener->change_settings(request.center_frequency, request.frequency_width, request.sample_rate);
     char new_buffer[LEN_BYTES + read_buffer_len];
+
+    listener->receive_data((void*)(new_buffer + LEN_BYTES), read_buffer_len);
+
+    //for now
+    /*
+    char new_buffer[LEN_BYTES + read_buffer_len];
+
     memcpy(new_buffer,len_size_buffer,LEN_BYTES);
     memcpy(new_buffer+LEN_BYTES,buffer,read_buffer_len);
+    */
 
     ssize_t sent_length = 0;
     while (sent_length != data_length) {//redircting data for now
@@ -121,6 +134,7 @@ void connection_handler::get_client_request(int client_fd){
         }
         sent_length += writen;
     }
+
     LOG("Data from client on socket " + std::to_string(client_fd) + " was returned");
 
 }
@@ -174,5 +188,4 @@ void connection_handler::start_server(int port){
                 }
             }
         }
-
 }

@@ -2,9 +2,10 @@
 #include "ui_clientdialog.h"
 #include "connection_info.h"
 
-ClientDialog::ClientDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ClientDialog)
+ClientDialog::ClientDialog(QWidget *parent, ConnectionClient* client)
+    : QDialog(parent)
+    , ui(new Ui::ClientDialog)
+    , connection_client(client)
 {
     ui->setupUi(this);
 }
@@ -22,4 +23,9 @@ void ClientDialog::on_AcceptButton_accepted()
 void ClientDialog::on_AcceptButton_rejected()
 {
 
+}
+
+void ClientDialog::on_pingButton_clicked()
+{
+    connection_client->establish_pingage();
 }

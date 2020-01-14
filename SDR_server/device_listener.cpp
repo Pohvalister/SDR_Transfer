@@ -1,6 +1,3 @@
-#include "rtl-sdr.h"
-#include "convenience.h"
-
 #include <cerrno>
 #include <cassert>
 #include <iostream>
@@ -19,13 +16,32 @@
 #define ELOG(a) std::cout<<"\n--\n"<<(a)<<", error:\n"<<'['<<std::string(strerror(errno))<<']'<<"\n--\n\n"
 
 
-device_listener::device_listener(int device_index){
+device_listener::device_listener(){
+
+}
+device_listener::~device_listener(){
+    rtlsdr_close(device_ptr);
+}
+
+
+int device_listener::connect_to_device(int device_index){
+
     if (device_index == DEFAULT_DEVICE_INDEX){
-        device_index = verbose_device_search("0");
+        std::string def = "0";
+        char* p = new char[def.size()+1];
+        std::copy(def.begin(),def.end(),p);
+        p[def.size()]='\0';
+
+        device_index = verbose_device_search(p);
+
+        delete [] p;
+
     }
     if (rtlsdr_open(&device_ptr, device_index)){
         ELOG("Error opening rtlsdr device ("+ std::to_string(device_index) + ")");
+        return -1;
     }
+    return 0;
 }
 //returns required buffer length to write data from "device_listener::receive_data"
 int device_listener::change_settings(int center_frequency, int frequency_width, int sample_rate){
@@ -33,17 +49,24 @@ int device_listener::change_settings(int center_frequency, int frequency_width, 
         rtlsdr_set_center_freq(device_ptr, center_frequency);
     if (sample_rate != device_sample_rate)
         rtlsdr_set_sample_rate(device_ptr, sample_rate);
-    if (frequency_width != device_frequency_width)
+    if (frequency_width != device_frequency_width){
+        int val = 1;
+        rtlsdr_get_tuner_gains(device_ptr, &val);
         ;//TODO
+    }
+    return 0;
 }
 
-void device_listener::receive_data(void* buffer, int buffer_size){
-    if (rtlsdr_reset_buffer(device_ptr))
-        ELOG("Failed to reset device buffer");
+int device_listener::receive_data(void* buffer, int buffer_size){
+
+    if (rtlsdr_reset_buffer(device_ptr)){
+        LOG("WARNING: Failed to reset buffers\n");
+    }
+
     int received_size;
-    rtlsdr_read_sync(device_ptr,buffer,buffer_size, &received_size);
+    return rtlsdr_read_sync(device_ptr,buffer,buffer_size, &received_size);
 }
 
-void device_listener::receive_data(void *buffer){
-    receive_data(buffer, device_buffer_size);
+int device_listener::receive_data(void *buffer){
+    return receive_data(buffer, device_buffer_size);
 }
