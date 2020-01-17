@@ -27,6 +27,8 @@ public:
 
 signals:
     void ConnectErrorSignal(QString);
+    void NetDataReceived(QByteArray);
+    void PingReceived();
 
 private slots:
     void slotReadyRead();

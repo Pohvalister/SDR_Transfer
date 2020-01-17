@@ -22,7 +22,8 @@ SOURCES += \
     connection_info.cpp \
     connectionclient.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    signal_processing.cpp
 
 HEADERS += \
     qcustomplot.h \
@@ -30,7 +31,8 @@ HEADERS += \
     connection_info.h \
     connectionclient.h \
     mainwindow.h \
-    ../connection_structure.h
+    ../connection_structure.h \
+    signal_processing.h
 
 FORMS += \
     clientdialog.ui \

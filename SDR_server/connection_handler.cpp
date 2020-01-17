@@ -104,30 +104,48 @@ void connection_handler::get_client_request(int client_fd){
         LOG("Client on socket " + std::to_string(client_fd) + " closed connection");
         return;
     }
-    ssize_t read_buffer_len = *((int16_t*)len_size_buffer);
-    LOG("Amount of bytes received: " + std::to_string(read_buffer_len));
+    if (data_length != LEN_BYTES){
+        ELOG("Data wasn't received correctly");
+    }
 
-    char buffer[read_buffer_len];
-    data_length += read(client_fd, buffer,read_buffer_len);
+    ssize_t read_buffer_value = *((int16_t*)len_size_buffer);
+    LOG("Client" + std::to_string(client_fd) + "request received: initial value is "+ std::to_string(read_buffer_value));
 
-    sdr_request request = *((sdr_request *)(buffer));
+    char* answer_buffer;
 
-    listener->change_settings(request.center_frequency, request.frequency_width, request.sample_rate);
-    char new_buffer[LEN_BYTES + read_buffer_len];
 
-    listener->receive_data((void*)(new_buffer + LEN_BYTES), read_buffer_len);
+    if(read_buffer_value > 0){
+        LOG("Client sending data, amount of bytes received: " + std::to_string(read_buffer_value));
 
-    //for now
-    /*
-    char new_buffer[LEN_BYTES + read_buffer_len];
+        char buffer[read_buffer_value];
+        data_length += read(client_fd, buffer,read_buffer_value);
 
-    memcpy(new_buffer,len_size_buffer,LEN_BYTES);
-    memcpy(new_buffer+LEN_BYTES,buffer,read_buffer_len);
-    */
+        sdr_request request = *((sdr_request *)(buffer));
+        answer_buffer = new char[LEN_BYTES + read_buffer_value];
+       // try {
+            listener->change_settings(request.center_frequency, request.frequency_width, request.sample_rate);
+
+            listener->receive_data((void*)(answer_buffer + LEN_BYTES), read_buffer_value);
+
+       // } catch () {
+
+       // }
+
+
+    }else{
+        if (read_buffer_value == -1)
+            LOG("Client is pinging, sending answer");
+        else
+            ELOG("Wrong initial value received");
+
+        answer_buffer = new char[LEN_BYTES];
+        memcpy(answer_buffer, len_size_buffer, LEN_BYTES);
+        data_length = LEN_BYTES;
+    }
 
     ssize_t sent_length = 0;
-    while (sent_length != data_length) {//redircting data for now
-        ssize_t writen = write(client_fd, new_buffer, (size_t) (data_length - sent_length));
+    while (sent_length != data_length) {
+        ssize_t writen = write(client_fd, answer_buffer, (size_t) (data_length - sent_length));
         if (writen == -1) {
             ELOG("Failed writing to client");
             return;

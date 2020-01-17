@@ -51,7 +51,7 @@ int device_listener::change_settings(int center_frequency, int frequency_width, 
         rtlsdr_set_sample_rate(device_ptr, sample_rate);
     if (frequency_width != device_frequency_width){
         int val = 1;
-        rtlsdr_get_tuner_gains(device_ptr, &val);
+        //rtlsdr_get_tuner_gains(device_ptr, &val);
         ;//TODO
     }
     return 0;

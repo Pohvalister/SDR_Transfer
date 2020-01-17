@@ -35,9 +35,12 @@ void ConnectionClient::slotReadyRead(){
     QByteArray len_byted = m_pTcpSocket->read(sizeof(qint16));
     len = *((qint16*)len_byted.data());
 
-    receiveBuffer= m_pTcpSocket->read(len);
+    receiveBuffer = m_pTcpSocket->read(len);
 
-    sdr_request check_request = *((sdr_request*)receiveBuffer.data());
+    char* tmp = receiveBuffer.data();
+
+    emit NetDataReceived(receiveBuffer);
+    //sdr_request check_request = *((sdr_request*)receiveBuffer.data());
 
     m_pTcpSocket->disconnectFromHost();
 }
@@ -90,14 +93,14 @@ void ConnectionClient::slotReadyReceivePing(){
 
     QByteArray value_byted = m_pTcpSocket->read(sizeof(qint16));
     value = *((qint16*)value_byted.data());
-    if (value>0){
+    if (value!=-1){
+        emit PingReceived();
         return;
     }
 
-    QByteArray receiveBuffer;
-    receiveBuffer= m_pTcpSocket->read(((-1)*value));
+    QString error_message = "Server didn't requested pinging correctly";
 
-    std::string error_message = *((std::string*)receiveBuffer.data());
+    emit ConnectErrorSignal(error_message);
 
     m_pTcpSocket->disconnectFromHost();
 }
